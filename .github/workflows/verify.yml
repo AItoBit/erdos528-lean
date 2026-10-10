@@ -1,0 +1,32 @@
+name: Verify known Erdős 528 limit theorem
+on: [push, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lean
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Fetch Mathlib cache
+        run: lake exe cache get
+      - name: Kernel-check the known limit-existence proof
+        run: lake --wfail build Erdos528
+      - name: Check axiom dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean PrintAxioms.lean | tee axioms.log
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('axioms.log').read_text()
+          for name in ('Erdos528.walkCount_submultiplicative', 'Erdos528.walkCount_pos', 'Erdos528.limit_exists'):
+              found = re.search(re.escape(name) + r"' depends on axioms: \[([^\]]*)\]", text)
+              assert found, name
+              assert set(x.strip() for x in found[1].split(',')) <= {'propext', 'Classical.choice', 'Quot.sound'}, found[1]
+          PY
