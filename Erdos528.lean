@@ -81,7 +81,8 @@ theorem isSelfAvoiding_firstPart {k m n : ℕ} {w : Fin (m+n) → Direction k}
   intro x y hxy
   rw [vertices_firstPart, vertices_firstPart] at hxy
   have he := h hxy
-  exact Fin.ext (congrArg Fin.val he)
+  have he' : x.val = y.val := congrArg (fun z : Fin (m+n+1) => z.val) he
+  exact Fin.ext he'
 
 theorem isSelfAvoiding_lastPart {k m n : ℕ} {w : Fin (m+n) → Direction k}
     (h : IsSelfAvoiding w) : IsSelfAvoiding (lastPart w) := by
@@ -110,9 +111,10 @@ theorem walkCount_submultiplicative (m n k : ℕ) :
   rw [← Finset.card_product]
   apply Finset.card_le_card_of_injOn (fun w => (firstPart w, lastPart w))
   · intro w hw
-    simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hw
-    simp only [Finset.mem_product, Finset.mem_filter, Finset.mem_univ, true_and]
-    exact ⟨isSelfAvoiding_firstPart hw, isSelfAvoiding_lastPart hw⟩
+    have hsa : IsSelfAvoiding w := by
+      simpa only [Finset.mem_filter, Finset.mem_univ, true_and] using hw
+    simpa only [Finset.mem_product, Finset.mem_filter, Finset.mem_univ, true_and] using
+      And.intro (isSelfAvoiding_firstPart hsa) (isSelfAvoiding_lastPart hsa)
   · exact split_injective.injOn
 
 theorem straight_vertices {k n : ℕ} (i : Fin k) (t : Fin (n+1)) :
@@ -128,7 +130,7 @@ theorem straight_vertices {k n : ℕ} (i : Fin k) (t : Fin (n+1)) :
     · intro j _
       refine ⟨⟨j.val, by omega⟩, ?_, rfl⟩
       simp [j.isLt]
-  simpa [vertices, displacement, Finset.sum_apply, Finset.sum_boole, hc]
+  simpa [vertices, displacement, Finset.sum_apply, ite_apply, Finset.sum_boole, hc]
 
 theorem walkCount_pos (n k : ℕ) (hk : 0 < k) : 0 < walkCount n k := by
   classical
