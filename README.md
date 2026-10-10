@@ -3,7 +3,11 @@
 **This does not solve Erdős 528.** The problem asks to determine the connective
 constants. This project formalizes the known theorem that the limit exists,
 using a finite signed-direction encoding, submultiplicativity, and Fekete's lemma.
-The candidate proof is undergoing verification; check CI before using it.
+The complete limit-existence proof passed [kernel verification and axiom
+checks](https://github.com/AItoBit/erdos528-lean/actions/runs/38033406343).
+Its main declarations depend only on `propext`, `Classical.choice`, and `Quot.sound`.
+An independent AI audit checked the statement, prefix/suffix injection, positivity,
+and logarithmic limit argument.
 
 Sources:
 - [Erdős 528](https://www.erdosproblems.com/528)
